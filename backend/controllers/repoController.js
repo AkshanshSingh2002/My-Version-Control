@@ -1,31 +1,173 @@
-export const createRepository = (req, res) => {
-    res.send("Repository Created!");
-};
+import mongoose from "mongoose";
+import Repository from "../models/repoModel.js";
+import User from "../models/userModel.js";
+import Issue from "../models/issueModel.js";
 
-export const getAllRepository = (req, res) => {
-    res.send("All Repository fetched!");
-};
+export async function createRepository(req, res) {
+	const { owner, name, issues, content, description, visibility } = req.body;
 
-export const fetchRepositoryById = (req, res) => {
-    res.send("Repository details fetched!");
-};
+	try {
+		if (!name) {
+			return res.status(400).send("Name are required to create a repository.");
+		}
+		if (!mongoose.Types.ObjectId.isValid(owner)) {
+			return res.status(400).json({ error: "Invalid user ID." });
+		}
 
-export const fetchRepositoryByName = (req, res) => {
-    res.send("Repository details fetched!");
-};
+		const newRepository = new Repository({
+			name,
+			issues,
+			content,
+			owner,
+			description,
+			visibility,
+		});
 
-export const fetchRepositoriesForCurrentUser = (req, res) => {
-    res.send("Repositorise for Logged In user fetched!!");
-};
+		const result = await newRepository.save();
 
-export const updateRepositoryById = (req, res) => {
-    res.send("Repository Updated!");
-};
+		res.status(201).json({
+			message: "Repository created successfully!",
+			repositoryID: result._id,
+		});
+	} catch (error) {
+		console.error("Error during Repository Creation:", error.message);
+		res.status(500).send("Server error during Repository Creation.");
+	}
+}
 
-export const toggleVisibilityById = (req, res) => {
-    res.send("Visibility Toggled!");
-};
+export async function getAllRepository(req, res) {
+	try {
+		const repositories = await Repository.find({})
+			.populate("owner")
+			.populate("issues");
 
-export const deleteRepositoryById = (req, res) => {
-    res.send("Repository deleted!");
-};
+		res.json(repositories);
+	} catch (error) {
+		console.error("Error during Fetching Repositories:", error.message);
+		res.status(500).send("Server error during Fetching Repositories.");
+	}
+}
+
+export async function fetchRepositoryById(req, res) {
+	const { id } = req.params;
+
+	try {
+		const repository = await Repository.find({ _id: id })
+			.populate("owner")
+			.populate("issues");
+		if (!repository) {
+			return res.status(404).json({ message: "Repository not found!" });
+		}
+		res.json(repository);
+	} catch (error) {
+		console.error("Error during Fetching Repository:", error.message);
+		res.status(500).send("Server error during Fetching Repository.");
+	}
+}
+
+export async function fetchRepositoryByName(req, res) {
+	const { name } = req.params;
+
+	try {
+		const repository = await Repository.find({ name: name })
+			.populate("owner")
+			.populate("issues");
+		if (!repository) {
+			return res.status(404).json({ message: "Repository not found!" });
+		}
+		res.json(repository);
+	} catch (error) {
+		console.error("Error during Fetching Repository:", error.message);
+		res.status(500).send("Server error during Fetching Repository.");
+	}
+}
+
+export async function fetchRepositoriesForCurrentUser(req, res) {
+	const { userId } = req.params;
+
+	try {
+		const repositories = await Repository.find({ owner: userId });
+
+		if (!repositories || repositories.length === 0) {
+			return res
+				.status(404)
+				.json({ error: "No repositories found for this user!" });
+		}
+
+		res.json({ message: "Repositories found!", repositories });
+	} catch (error) {
+		console.error("Error during Fetching User Repository:", error.message);
+		res.status(500).send("Server error during Fetching User Repository.");
+	}
+}
+
+export async function updateRepositoryById(req, res) {
+	const { id } = req.params;
+    const { content, description} = req.body;
+
+    try {
+        const repository = await Repository.findById(id);
+        if (!repository) {
+			return res
+				.status(404)
+				.json({ error: "No repository found!" });
+		}
+
+        repository.content.push(content);       //Always adds the new content to the array
+        repository.description = description;   //Replaces the entire description
+
+        const updatedRepository = await repository.save();
+        res.json({
+            message: "Repository updated successfully!",
+            repository: updatedRepository,
+        });
+
+    } catch (error) {
+        console.error("Error during Updating User Repository:", error.message);
+		res.status(500).send("Server error during Updating User Repository.");
+    }
+}
+
+export async function toggleVisibilityById(req, res) {
+    const { id } = req.params;
+
+    try {
+        const repository = await Repository.findById(id);
+        if (!repository) {
+			return res
+				.status(404)
+				.json({ error: "No repository found!" });
+		}
+
+        repository.visibility = !repository.visibility;
+
+        const updatedRepository = await repository.save();
+        res.json({
+            message: "Repository visibility toggled successfully!",
+            repository: updatedRepository,
+        });
+
+    } catch (error) {
+        console.error("Error during Updating User Repository:", error.message);
+		res.status(500).send("Server Error");
+    }
+}
+
+export async function deleteRepositoryById(req, res) {
+	const { id } = req.params;
+
+    try {
+        const repository = await Repository.findByIdAndDelete(id);
+        if (!repository) {
+			return res
+				.status(404)
+				.json({ error: "No repository found!" });
+		}
+
+        res.json({message: "Repository deleted successfully!"});
+
+    } catch (error) {
+        console.error("Error during Updating User Repository:", error.message);
+		res.status(500).send("Server Error");
+    }
+}
