@@ -48,7 +48,7 @@ export const signup = async (req, res) => {
 			process.env.JWT_SECRET_KEY,
 			{ expiresIn: "1h" }
 		);
-		res.json({ token });
+		res.json({ token, userId: result.insertedId });
 	} catch (error) {
 		console.error("Error during signup:", error.message);
 		res.status(500).send("Server error during signup.");

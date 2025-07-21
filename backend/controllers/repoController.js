@@ -83,10 +83,10 @@ export async function fetchRepositoryByName(req, res) {
 }
 
 export async function fetchRepositoriesForCurrentUser(req, res) {
-	const { userId } = req.params;
+	const { userID } = req.params;
 
 	try {
-		const repositories = await Repository.find({ owner: userId });
+		const repositories = await Repository.find({ owner: userID });
 
 		if (!repositories || repositories.length === 0) {
 			return res
