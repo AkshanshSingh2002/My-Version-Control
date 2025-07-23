@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import BookIcon from "@mui/icons-material/Book";
-import { styles } from "./githubProfileStyles";
+import { styles } from "./ProfileStyles.js";
 import Navbar from "../Navbar.jsx";
 import { useNavigate } from "react-router-dom";
 import HeatMapProfile from "./HeatMap.jsx";
