@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Navbar from "../Navbar";
 import "./Dashboard.css";
 
 const Dashboard = () => {
@@ -54,7 +55,8 @@ const Dashboard = () => {
 		}
 	}, [searchQuery, repositories]);
 
-	return (
+	return (<>
+        <Navbar />
 		<section id="dashboard">
 			<aside>
 				<h3>Suggested Repositories</h3>
@@ -101,7 +103,7 @@ const Dashboard = () => {
 				</ul>
 			</aside>
 		</section>
-	);
+	</>);
 };
 
 export default Dashboard;
